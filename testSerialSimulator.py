@@ -41,34 +41,12 @@ class CRC8:
             0x044, 0x0d5, 0x025, 0x0b4, 0x086, 0x017, 0x0e7, 0x076,
             0x083, 0x012, 0x0e2, 0x073, 0x041, 0x0d0, 0x020, 0x0b1)
 
-    # def crc(self, msg):
-    #     runningCRC = 0
-    #     for c in msg:
-    #         runningCRC = self.crcByte(runningCRC, int(c.encode('hex'), 16))
-    #     return runningCRC
-
-
     def crc(self, msg):
         runningCRC = 0x00
-        i = 0
-        msg1 = ['09', '05', 'fd', 'fd', 'a5', '0a', '0f', '0d', '51', '4f', '6d', '68', 'aa', '50', '3a', '30', '39', 'd9']
-        print('step', 'phase', 'runningCRC')
-        for c in msg1:
-            i += 1
-            print(i, 'A', runningCRC)
+        for c in msg:
             runningCRC = self.crcTable[runningCRC ^ int(c, 16)]
-            print(i, 'B', runningCRC)
             runningCRC = runningCRC & 0xFF
-            print(i, 'C', runningCRC)
-        import sys
-        sys.exit()
         return runningCRC
-
-
-    def crcByte(self, oldCrc, byte):
-        res = self.crcTable[oldCrc & 0xFF ^ byte & 0xFF]
-        return res
-
 
 class passport:
     def __init__(self, data):
