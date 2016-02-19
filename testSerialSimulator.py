@@ -52,7 +52,6 @@ class CRC8:
         runningCRC = 0x00
         i = 0
         msg1 = ['09', '05', 'fd', 'fd', 'a5', '0a', '0f', '0d', '51', '4f', '6d', '68', 'aa', '50', '3a', '30', '39', 'd9']
-        print msg1
         print('step', 'phase', 'runningCRC')
         for c in msg1:
             i += 1
