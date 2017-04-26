@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-import csv
 import re
+from datetime import datetime
+
 import serial as serial
 
 filename_date = datetime.utcnow().strftime('%Y%m%d%H%M%S')
@@ -56,7 +56,6 @@ class CRC8:
             # print(i, 'B', runningCRC)
             runningCRC = runningCRC & 0xFF
             # print(i, 'C', runningCRC)
-        import sys
         # sys.exit()
         return runningCRC
 
@@ -244,9 +243,15 @@ class passport:
                     str(int(''.join(self.wawe_3_12), 2)) + ';' +
                     str(int(''.join(self.wawe_3_14), 2)) + '\n')
             f.close()
+        else:
+            print('ERROR:\t CRC')
 
 def run():
+    print('Start serialCardio ...')
+
     strPort = '/dev/ttyUSB0'
+
+    print('Serial Port:\t' + strPort)
     ser = serial.Serial(strPort, 9600, timeout=1)
 
     f = open(filename_date + '_data.csv', 'a')
