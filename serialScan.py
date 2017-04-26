@@ -22,7 +22,7 @@ def init_serial():
 
     # print port open or closed
     if ser.isOpen():
-        print 'Open: ' + ser.portstr
+        print('Open: ' + ser.portstr)
 #Function Ends Here
 
 
@@ -31,6 +31,6 @@ init_serial()
 
 while 1:
     bytes = ser.readline()  #Read from Serial Port
-    print bytes.encode("hex")      #Print What is Read from Port
+    print(bytes.encode("hex"))   #Print What is Read from Port
 
 #Ctrl+C to Close Python Window

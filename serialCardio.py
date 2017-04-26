@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
-import time
-import re
-import fakeSerial as serial
 
+from datetime import datetime
+import csv
+import re
+import serial as serial
+
+filename_date = datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
 class CRC8:
     def __init__(self):
@@ -41,30 +43,22 @@ class CRC8:
             0x044, 0x0d5, 0x025, 0x0b4, 0x086, 0x017, 0x0e7, 0x076,
             0x083, 0x012, 0x0e2, 0x073, 0x041, 0x0d0, 0x020, 0x0b1)
 
-    # def crc(self, msg):
-    #     runningCRC = 0
-    #     for c in msg:
-    #         runningCRC = self.crcByte(runningCRC, int(c.encode('hex'), 16))
-    #     return runningCRC
-
-
     def crc(self, msg):
         runningCRC = 0x00
         i = 0
-        msg1 = ['09', '05', 'fd', 'fd', 'a5', '0a', '0f', '0d', '51', '4f', '6d', '68', 'aa', '50', '3a', '30', '39', 'd9']
-        print msg1
-        print('step', 'phase', 'runningCRC')
-        for c in msg1:
+        # msg1 = ['09', '05', 'fd', 'fd', 'a5', '0a', '0f', '0d', '51', '4f', '6d', '68', 'aa', '50', '3a', '30', '39', 'd9']
+        # print(msg)
+        # print('step', 'phase', 'runningCRC')
+        for c in msg:
             i += 1
-            print(i, 'A', runningCRC)
+            # print(i, 'A', runningCRC)
             runningCRC = self.crcTable[runningCRC ^ int(c, 16)]
-            print(i, 'B', runningCRC)
+            # print(i, 'B', runningCRC)
             runningCRC = runningCRC & 0xFF
-            print(i, 'C', runningCRC)
+            # print(i, 'C', runningCRC)
         import sys
-        sys.exit()
+        # sys.exit()
         return runningCRC
-
 
     def crcByte(self, oldCrc, byte):
         res = self.crcTable[oldCrc & 0xFF ^ byte & 0xFF]
@@ -199,31 +193,110 @@ class passport:
         self.crc_2 = (bin(int(data[56 - 1], 16))[2:]).zfill(len(data[56 - 1]) * 4)  # xxxxxxxx
         self.crc_3 = (bin(int(data[74 - 1], 16))[2:]).zfill(len(data[74 - 1]) * 4)  # xxxxxxxx
 
-    def printData(self):
+    def saveData(self):
         crcTest = CRC8().crc(self.data[3 - 1:21 - 1])
         if (crcTest == 0):
             currenttime = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-            print(int(self.ecg_00, 2), currenttime)
-            print(int(self.ecg_01, 2), currenttime)
-            print(int(self.ecg_02, 2), currenttime)
-            print(int(self.ecg_03, 2), currenttime)
-            print(int(self.ecg_04, 2), currenttime)
-            print(int(self.ecg_05, 2), currenttime)
-            print(int(self.ecg_06, 2), currenttime)
-            print(int(self.ecg_07, 2), currenttime)
-            print(int(self.ecg_08, 2), currenttime)
-            print(int(self.ecg_09, 2), currenttime)
-            print(int(self.ecg_10, 2), currenttime)
-            print(int(self.ecg_11, 2), currenttime)
-            print(int(self.ecg_12, 2), currenttime)
-            print(int(self.ecg_13, 2), currenttime)
-            print(int(self.ecg_14, 2), currenttime)
-            print(int(self.ecg_15, 2), currenttime)
-
+            f = open(filename_date + '_data.csv', 'a')
+            f.write(currenttime + ';' +
+                    str(int(self.ecg_00, 2)) + ';' +
+                    str(int(self.ecg_01, 2)) + ';' +
+                    str(int(self.ecg_02, 2)) + ';' +
+                    str(int(self.ecg_03, 2)) + ';' +
+                    str(int(self.ecg_04, 2)) + ';' +
+                    str(int(self.ecg_05, 2)) + ';' +
+                    str(int(self.ecg_06, 2)) + ';' +
+                    str(int(self.ecg_07, 2)) + ';' +
+                    str(int(self.ecg_08, 2)) + ';' +
+                    str(int(self.ecg_09, 2)) + ';' +
+                    str(int(self.ecg_10, 2)) + ';' +
+                    str(int(self.ecg_11, 2)) + ';' +
+                    str(int(self.ecg_12, 2)) + ';' +
+                    str(int(self.ecg_13, 2)) + ';' +
+                    str(int(self.ecg_14, 2)) + ';' +
+                    str(int(self.ecg_15, 2)) + ';' +
+                    ''.join(self.pacerbits_0) + ';' +
+                    ''.join(self.pacerbits_1) + ';' +
+                    ''.join(self.pacerbits_2) + ';' +
+                    ''.join(self.pacerbits_3) + ';' +
+                    str(int(''.join(self.wawe_1_00), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_02), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_04), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_06), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_08), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_10), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_12), 2)) + ';' +
+                    str(int(''.join(self.wawe_1_14), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_00), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_02), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_04), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_06), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_08), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_10), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_12), 2)) + ';' +
+                    str(int(''.join(self.wawe_2_14), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_00), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_02), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_04), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_06), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_08), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_10), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_12), 2)) + ';' +
+                    str(int(''.join(self.wawe_3_14), 2)) + '\n')
+            f.close()
 
 def run():
     strPort = '/dev/ttyUSB0'
     ser = serial.Serial(strPort, 9600, timeout=1)
+
+    f = open(filename_date + '_data.csv', 'a')
+    f.write('timestamp' + ';' +
+            'ecg_00' + ';' +
+            'ecg_01' + ';' +
+            'ecg_02' + ';' +
+            'ecg_03' + ';' +
+            'ecg_04' + ';' +
+            'ecg_05' + ';' +
+            'ecg_06' + ';' +
+            'ecg_07' + ';' +
+            'ecg_08' + ';' +
+            'ecg_09' + ';' +
+            'ecg_10' + ';' +
+            'ecg_11' + ';' +
+            'ecg_12' + ';' +
+            'ecg_13' + ';' +
+            'ecg_14' + ';' +
+            'ecg_15' + ';' +
+            'pacerbits_0' + ';' +
+            'pacerbits_1' + ';' +
+            'pacerbits_2' + ';' +
+            'pacerbits_3' + ';' +
+            'wawe_1_00' + ';' +
+            'wawe_1_02' + ';' +
+            'wawe_1_04' + ';' +
+            'wawe_1_06' + ';' +
+            'wawe_1_08' + ';' +
+            'wawe_1_10' + ';' +
+            'wawe_1_12' + ';' +
+            'wawe_1_14' + ';' +
+            'wawe_2_00' + ';' +
+            'wawe_2_02' + ';' +
+            'wawe_2_04' + ';' +
+            'wawe_2_06' + ';' +
+            'wawe_2_08' + ';' +
+            'wawe_2_10' + ';' +
+            'wawe_2_12' + ';' +
+            'wawe_2_14' + ';' +
+            'wawe_3_00' + ';' +
+            'wawe_3_02' + ';' +
+            'wawe_3_04' + ';' +
+            'wawe_3_06' + ';' +
+            'wawe_3_08' + ';' +
+            'wawe_3_10' + ';' +
+            'wawe_3_12' + ';' +
+            'wawe_3_14' + '\n')
+    f.close()
+
     x_aa = ser.read()  # read one byte
     while x_aa != "":
         x_aa = ser.read()  # read one byte
@@ -233,9 +306,7 @@ def run():
                 x = x_aa + x_55 + ser.read(72)
                 data = re.findall(r'.{1,2}', x.encode('hex'), re.DOTALL)
                 dataPass = passport(data)
-                dataPass.printData()
-                time.sleep(.008)  # fix when serial is real connect to passport
+                dataPass.saveData()
     ser.close()
-
 
 run()
