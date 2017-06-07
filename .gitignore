@@ -1,3 +1,5 @@
+.idea/*
 utility/*
 *.csv
-.idea/*
+*.txt
+fakeSerial.py
