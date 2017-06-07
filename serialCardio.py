@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import serial as serial
 
-filename_date = datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
 class CRC8:
     def __init__(self):
@@ -46,9 +45,6 @@ class CRC8:
     def crc(self, msg):
         runningCRC = 0x00
         i = 0
-        # msg1 = ['09', '05', 'fd', 'fd', 'a5', '0a', '0f', '0d', '51', '4f', '6d', '68', 'aa', '50', '3a', '30', '39', 'd9']
-        # print(msg)
-        # print('step', 'phase', 'runningCRC')
         for c in msg:
             i += 1
             # print(i, 'A', runningCRC)
@@ -192,7 +188,7 @@ class passport:
         self.crc_2 = (bin(int(data[56 - 1], 16))[2:]).zfill(len(data[56 - 1]) * 4)  # xxxxxxxx
         self.crc_3 = (bin(int(data[74 - 1], 16))[2:]).zfill(len(data[74 - 1]) * 4)  # xxxxxxxx
 
-    def saveData(self):
+    def saveData(self, filename_date):
         crcTest = CRC8().crc(self.data[3 - 1:21 - 1])
         if (crcTest == 0):
             currenttime = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
@@ -246,14 +242,8 @@ class passport:
         else:
             print('ERROR:\t CRC')
 
-def run():
-    print('Start serialCardio ...')
 
-    strPort = '/dev/ttyUSB0'
-
-    print('Serial Port:\t' + strPort)
-    ser = serial.Serial(strPort, 9600, timeout=1)
-
+def csvHeader(filename_date):
     f = open(filename_date + '_data.csv', 'a')
     f.write('timestamp' + ';' +
             'ecg_00' + ';' +
@@ -302,16 +292,38 @@ def run():
             'wawe_3_14' + '\n')
     f.close()
 
-    x_aa = ser.read()  # read one byte
+
+def main():
+    print('Start serialCardio ...')
+
+    strPort = '/dev/ttyUSB0'
+
+    print('Serial Port:\t' + strPort)
+    ser = serial.Serial(strPort, 9600, timeout=1)
+
+    currentdatetime = datetime.now()
+    filename_date = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+
+    csvHeader(filename_date)
+
+    x_aa = ser.read()
     while x_aa != "":
-        x_aa = ser.read()  # read one byte
+        x_aa = ser.read()
         if (x_aa.encode("hex") == 'aa'):
             x_55 = ser.read()
             if (x_55.encode("hex") == '55'):
                 x = x_aa + x_55 + ser.read(72)
                 data = re.findall(r'.{1,2}', x.encode('hex'), re.DOTALL)
+
+                if currentdatetime + timedelta(days=.5) < datetime.now():
+                    currentdatetime = datetime.now()
+                    filename_date = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+                    csvHeader(filename_date)
+
                 dataPass = passport(data)
-                dataPass.saveData()
+                dataPass.saveData(filename_date)
     ser.close()
 
-run()
+
+if __name__ == '__main__':
+    main()
